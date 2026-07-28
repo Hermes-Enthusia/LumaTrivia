@@ -4,7 +4,7 @@ import io.papermc.paper.event.player.AsyncChatEvent
 import net.badgersmc.nexus.i18n.LangService
 import net.badgersmc.trivia.application.ChatPlatform
 import net.badgersmc.trivia.application.TriviaService
-import net.kyori.adventure.text.TextComponent
+import net.kyori.adventure.text.serializer.plain.PlainTextComponentSerializer
 import org.bukkit.event.EventHandler
 import org.bukkit.event.EventPriority
 import org.bukkit.event.Listener
@@ -22,6 +22,8 @@ class ChatListener(
     private val chatPlatform: ChatPlatform,
 ) : Listener {
 
+    private val plain = PlainTextComponentSerializer.plainText()
+
     @EventHandler(priority = EventPriority.LOWEST, ignoreCancelled = true)
     fun onChat(event: AsyncChatEvent) {
         val player = event.player
@@ -29,7 +31,9 @@ class ChatListener(
         // Only active during a game
         if (!triviaService.isActive) return
 
-        val content = (event.message() as? TextComponent)?.content() ?: return
+        // Extract plain text from any Component type (TextComponent, TranslatableComponent, etc.)
+        val content = plain.serialize(event.message()).trim()
+        if (content.isEmpty()) return
 
         // Channel/platform check first — only trivia-channel messages proceed
         if (!chatPlatform.isAnswerChat(player, content)) return
