@@ -38,12 +38,15 @@ class TriviaService(
     private var gameTaskId: Int = -1
     private var cooldownUntil: Long = 0L
     private var currentQuestionData: Question? = null
-    private val answeredPlayers: MutableSet<UUID> = HashSet()
+    private val answeredPlayers: MutableSet<UUID> = ConcurrentHashMap.newKeySet()
 
     val currentQuestion: Question? get() = currentQuestionData
     val isActive: Boolean get() = gameActive
 
     fun isGameActive(): Boolean = gameActive
+
+    /** Check if player already answered this round. Thread-safe early-out for the listener. */
+    fun hasPlayerAnswered(uuid: UUID): Boolean = answeredPlayers.contains(uuid)
 
     /** Update config at runtime (for reload). */
     fun updateConfig(newConfig: TriviaConfig) {

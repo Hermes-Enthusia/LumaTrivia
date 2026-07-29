@@ -58,6 +58,13 @@ class ChatListener(
 
         if (isValidAnswer) {
             event.isCancelled = true
+
+            // Early-out: block duplicate answers before scheduling
+            if (triviaService.hasPlayerAnswered(player.uniqueId)) {
+                player.sendMessage(lang.msg("game.already_answered"))
+                return
+            }
+
             val mapped = when {
                 normalized.startsWith("t") -> "true"
                 normalized.startsWith("f") -> "false"
